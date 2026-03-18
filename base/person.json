@@ -1,0 +1,15 @@
+{
+    "name": "Саша",
+    "age": 20,
+    "phone": "2223192",
+    "email": [
+        "kostyazu1985@gmaill.com",
+        "kostyazu2014@yandex.ru"
+    ],
+    "address": {
+        "city": "Nizhny Novgorod",
+        "country": "Российская Федерация",
+        "street": "Spokeswoman",
+        "house_number": 22
+    }
+}
