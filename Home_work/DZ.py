@@ -1,90 +1,85 @@
-# Задача 1
-class Wolf:
-    def howl(self):
-        print("Уууу!")
+from sqlalchemy import Column, String, Integer, Float, Boolean, create_engine, select
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-class Dog:
-    def bark(self):
-        print("Гав!")
+Base = declarative_base() # базовый класс для моделей
 
-class Warewolf(Wolf, Dog):
-    def transform(self):
-        print("Превращение!")
+class Movie(Base): # определение модели Movie
+    __tablename__ = "movies" # название таблицы
+    id = Column(Integer, primary_key=True) # поля таблицы
+    title = Column(String, nullable=False)
+    genre = Column(String)
+    year = Column(Integer)
+    duration = Column(Integer)
+    rating = Column(Float)
+    is_available = Column(Boolean, default=True)
 
-monster = Warewolf()
+    def __repr__(self): # метод красивого отображения в консоли
+        return f"<Movie(title='{self.title}', genre='{self.genre}', rating={self.rating})>"
 
-monster.bark()
-monster.transform()
-monster.howl()
+engine = create_engine('sqlite:///cinema.db', echo=False) # настройка БД
+Session = sessionmaker(bind=engine)
+session = Session()
 
-print(Warewolf.__mro__)
-print("-" * 80)
+# ---Функции для работы с БД---
+# Создает фильм, добавляет в БД
+def create_movie(title, genre, year, duration, rating):
+    new_movie = Movie(title=title, genre=genre, year=year, duration=duration, rating=rating)
+    session.add(new_movie)
+    session.commit()
+    return new_movie
 
-# Задача 2
-class EatMixin:
-    def eat(self):
-        print("Сотрудник ест.")
+# Возвращает все фильмы (используем новый синтаксис select, который заменил старый метод query())
+def get_all_movies():
+    return session.scalars(select(Movie)).all()
 
-class SleepMixin:
-    def sleep(self):
-        print("Сотрудник спит.")
+# Возвращает фильмы жанра
+def get_movies_by_genre(genre_name):
+    return session.scalars(select(Movie).where(Movie.genre == genre_name)).all()
 
-class Worker(EatMixin, SleepMixin):
-    def __init__(self, name):
-        self.name = name
+# Фильмы с рейтингом ≥ указанного
+def get_high_rated_movies(min_rating):
+    return session.scalars(select(Movie).where(Movie.rating >= min_rating)).all()
 
-    def work(self):
-        print(f"{self.name} работает.")
+# Фильмы после указанного года
+def get_movies_after_year(year):
+    return session.scalars(select(Movie).where(Movie.year > year)).all()
 
-employee = Worker("Дмитрий")
+# Один фильм по названию
+def get_movie_by_title(title):
+    return session.scalars(select(Movie).where(Movie.title == title)).first()
 
-employee.sleep()
-employee.work()
-employee.eat()
+# ---блок запуска---
+# Создать таблицы через Base.metadata.create_all(engine)
+if __name__ == '__main__':
+    Base.metadata.drop_all(engine) # чтобы данные не дублировались при перезапуске
+    Base.metadata.create_all(engine)
+    print("Таблицы созданы!")
 
-print("-" * 80)
+# Добавить минимум 5 фильмов (разные жанры, годы, рейтинги)
+create_movie("Бриллиантовая рука", "комедия", 1969, 94, 8.6)
+create_movie("Горничная", "ужасы", 2025, 131, 7.6)
+create_movie("Прыгуны", "мультфильм", 2026, 104, 7.8)
+create_movie("Острые козырьки: Бессмертный человек", "история", 2026, 112, 6.5)
+create_movie("Убежище", "боевик", 2026, 107, 7.0)
 
-# Задача 3
-class A:
-    def show(self):
-        print("Класс A.")
+# Вызвать все функции чтения и вывести результаты в консоль
+# Оформить вывод с разделителями и заголовками
+print("1. Все фильмы в базе:")
+print(get_all_movies())
+print("-" * 30)
 
-class B:
-    def show(self):
-        print("Класс В.")
+print("2. Фильмы в жанре 'ужасы':")
+print(get_movies_by_genre("ужасы"))
+print("-" * 30)
 
-class C(A, B):
-    def test(self):
-        self.show()
+print("3. Фильмы с рейтингом 7.6 и выше:")
+print(get_high_rated_movies(7.6))
+print("-" * 30)
 
-obj = C()
-obj.test()
-# В Python поиск методов идет слева направо по списку родителей.
-# Так как в class C(A, B) класс A стоит первым, его метод "перекрывает" метод класса B.
+print("4. Фильмы вышеедшие после 2025 года:")
+print(get_movies_after_year(2025))
+print("-" * 30)
 
-class C_new(B, A):
-    def test(self):
-        self.show()
-obj_new = C_new()
-obj_new.test()
-
-print("-" * 80)
-
-# Задача 4
-class PrintMixin:
-    def print_document(self, text):
-        print(f"Печать документа: {text}")
-
-class SaveMixin:
-    def save_document(self, text):
-        print(f"Сохранено: {text}")
-
-class Document(SaveMixin, PrintMixin):
-    def create(self, content):
-        self.print_document(content)
-        self.save_document(content)
-
-my_doc = Document()
-my_doc.create("Важный документ")
-
-
+print("5. Поиск фильма 'Бриллиантовая рука':")
+print(get_movie_by_title("Бриллиантовая рука"))
+print("-" * 30)
