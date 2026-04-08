@@ -90,3 +90,12 @@ session = Session()
 # ivan = session.query(User).filter(User.name == "Иван").first()
 # print(ivan)
 
+# user = session.query(User).filter(User.email == "ivan@mail.ru").first()
+#
+# session.delete(user)
+# session.commit()
+#
+# print(f"user delete")
+#
+# session.close()
+
