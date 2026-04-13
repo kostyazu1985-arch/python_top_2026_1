@@ -17,7 +17,7 @@ class Product(Base):
     def __repr__(self):
         return f"<Product(name = {self.name}, price = {self.price}, stock = {self.stock})>"
 
-class Productmanager:
+class ProductManager:
     def __init__(self):
         pass
 
@@ -205,5 +205,110 @@ class Productmanager:
         finally:
             session.close()
 
+    def delete_by_name(self, name):
+        session = Session()
+        try:
+            product = session.query(Product).filter(Product.name == name).first()
+            if product:
+                session.delete(product)
+                session.commit()
+                print(f"Товар {product.name} удален")
+                return True
+            else:
+                print(f"Товар с ID {name} не найден")
+                return False
+        except Exception as e:
+            session.rollback()
+            print(f"Ошибка {e}")
+            return False
+        finally:
+            session.close()
+
+class ProductViewer:
+    def print_header(self, text):
+        print(f"==={text}===")
+
+    def print_one(self, product):
+        if product:
+            status = "В наличии" if product.is_available else "Нет в наличии"
+            stock_info = f"{product.stock} шт" if product.stock > 0 else "0 шт"
+            print(f"ID{product.id} | {product.name} | {product.price} | {stock_info} | {status}")
+        else:
+            print("Товар не найден")
+
+    def print_all(self, products):
+        if not products:
+            print("Товар не найден")
+            return
+        for p in products:
+            self.print_one(p)
+
+    def print_statistics(self, products):
+        if not products:
+            print("Не найден")
+            return
+
+        total = len(products)
+        available = sum(1 for p in products if p.is_available)
+        in_stock = sum(1 for p in products if p.stock > 0)
+        total_price = sum(p.stock * p.price for p in products)
+        avg_price = sum(p.stock * p.price for p in products) / total
+
+        print(f"Всегго товаров {total}")
+        print(f"Доступно {available}")
+        print(f"В наличии {in_stock}")
+        print(f"Общая стоимость {total_price}")
+        print(f"Средняя цена {avg_price}")
+
 if __name__ == '__main__':
     Base.metadata.create_all(engine)
+
+    manager = ProductManager()
+    viewer = ProductViewer()
+
+    viewer.print_header("База готова")
+
+    # manager.create("Ноутбук", 50000, stock=10)
+    # manager.create("Ноутбук 16-дюймов", 80000, stock=20)
+    # manager.create("Мышка", 5000, stock=100)
+    # manager.create("Клавиатура", 3000, stock=80)
+    # manager.create("Монитор", 15000, stock=20)
+    # manager.create("Системный блок", 500000, stock=5)
+    # manager.create("Роутер", 10000, stock=28)
+    # manager.create("Телефон", 250000, stock=35)
+    # manager.create("Планшет", 450000, stock=2)
+    # manager.create("Наушники", 9000, stock=30)
+    # manager.create("Часы", 8000, stock=0, is_available=False)
+    # manager.create("Smart-Часы", 75000, 10, False)
+
+    # print("Все товары")
+    # products = manager.get_all()
+    # viewer.print_all(products)
+
+    # print("Обновление товаров")
+    # manager.update_price(product_id=1, new_price=55555)
+    # manager.add_stock(product_id=10, quantity=20)
+    # manager.update_available(product_id=12, is_available=True)
+
+    # print("Проверка")
+    # products = manager.get_all()
+    # viewer.print_all(products)
+
+    # by_price = manager.get_by_price_range(10000, 100000)
+    # viewer.print_all(by_price)
+
+    # print("Удаление")
+    # manager.delete_by_id(product_id=11)
+    # manager.delete_by_name("Планшет")
+
+    # products = manager.get_all()
+    # viewer.print_all(products)
+
+    # print("Статистика")
+    # viewer.print_statistics(products)
+
+
+
+
+
+
