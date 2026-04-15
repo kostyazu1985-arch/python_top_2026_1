@@ -1,173 +1,234 @@
-from sqlalchemy import Column, String, Integer, Float, Boolean, create_engine, select, delete
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey, create_engine, select, func
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
-Base = declarative_base() # базовый класс для моделей
+Base = declarative_base()
 
-class Movie(Base): # определение модели Movie
-    __tablename__ = "movies" # название таблицы
-    id = Column(Integer, primary_key=True) # поля таблицы
+# --- МОДЕЛИ ---
+class Genre(Base):
+    __tablename__ = "genres"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    description = Column(String)
+
+    # Связь: один жанр ко многим фильмам
+    movies = relationship("Movie", back_populates="genre", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<Genre(id={self.id}, name='{self.name}')>"
+
+
+class Movie(Base):
+    __tablename__ = "movies"
+    id = Column(Integer, primary_key=True)
     title = Column(String, nullable=False)
-    genre = Column(String)
     year = Column(Integer)
     duration = Column(Integer)
     rating = Column(Float)
     is_available = Column(Boolean, default=True)
 
-    def __repr__(self): # метод красивого отображения в консоли
-        return f"ID: {self.id} | '{self.title}'({self.year}) Жанр: {self.genre} | Рейтинг: {self.rating} | В прокате: {self.is_available}"
+    # Внешний ключ на таблицу жанров
+    genre_id = Column(Integer, ForeignKey("genres.id"), nullable=False)
+
+    # Обратная связь к жанру
+    genre= relationship("Genre", back_populates="movies")
+
+    def __repr__(self):
+        return f"Movie(id={self.id}, title='{self.title}', genre='{self.genre.name if self.genre else 'None'}')"
+
+
+
+# --- МЕНЕДЖЕРЫ ---
+class GenreManager:
+    def __init__(self, session):
+        self.session = session
+
+    # Создает жанр
+    def create(self, name, description):
+        genre = Genre(name=name, description=description)
+        self.session.add(genre)
+        self.session.commit()
+        return genre
+
+    # Все жанры
+    def get_all(self):
+        return self.session.scalars(select(Genre)).all()
+
+    # Жанр по ID
+    def get_by_id(self, genre_id):
+        return self.session.get(Genre, genre_id)
+
+    # Жанр по названию
+    def get_by_name(self, name):
+        return self.session.scalars(select(Genre).where(Genre.name == name)).first()
+
+    # Обновляет название
+    def update_name(self, genre_id, new_name):
+        genre = self.get_by_id(genre_id)
+        if genre:
+            genre.name = new_name
+            self.session.commit()
+
+    # Обновляет описание
+    def update_description(self, genre_id, new_description):
+        genre = self.get_by_id(genre_id)
+        if genre:
+            genre.description = new_description
+            self.session.commit()
+
+    # Удаляет жанр
+    def delete_by_id(self, genre_id):
+        genre = self.get_by_id(genre_id)
+        if genre:
+            self.session.delete(genre)
+            self.session.commit()
+
+    # Жанры с количеством фильмов
+    def get_genres_with_movies_count(self):
+        query = (
+            select(Genre.name, func.count(Movie.id))
+            .outerjoin(Movie)
+            .group_by(Genre.id)
+        )
+        return self.session.execute(query).all()
+
+
 
 class MovieManager:
     def __init__(self, session):
         self.session = session
 
-# ---Функции для работы с БД---
-# Создает фильм, добавляет в БД
-    def create_movie(self, title, genre, year, duration, rating):
-        new_movie = Movie(title=title, genre=genre, year=year, duration=duration, rating=rating)
-        self.session.add(new_movie)
-        self.session.commit()
-        return new_movie
+    # Создает фильм по названию жанра
+    def create_with_genre_name(self, title, year, duration, rating, genre_name):
+        genre = self.session.scalars(select(Genre).where(Genre.name == genre_name)).first()
+        if not genre:
+            raise ValueError(f"Жанр {genre_name} не найден")
 
-# Возвращает все фильмы (используем новый синтаксис select, который заменил старый метод query())
+        movie = Movie(title=title, year=year, duration=duration, rating=rating, genre_id=genre.id)
+        self.session.add(movie)
+        self.session.commit()
+        return movie
+
+    # Все фильмы
     def get_all_movies(self):
         return self.session.scalars(select(Movie)).all()
 
-# Возвращает фильм по ID
+    # Фильм по ID
     def get_by_id(self, movie_id):
         return self.session.get(Movie, movie_id)
 
-# Возвращает фильм по названию
-    def get_movie_by_title(self, title):
-        return self.session.scalars(select(Movie).where(Movie.title == title)).first()
+    # Фильмы жанрам
+    def get_by_genre(self, genre_id):
+        return self.session.scalars(select(Movie).where(Movie.genre_id == genre_id)).all()
 
-# Возвращает фильмы жанра
-    def get_movies_by_genre(self, genre_name):
-        return self.session.scalars(select(Movie).where(Movie.genre == genre_name)).all()
-
-# Фильмы с рейтингом ≥ указанного
-    def get_high_rated_movies(self, min_rating):
-        return self.session.scalars(select(Movie).where(Movie.rating >= min_rating)).all()
-
-# Фильмы после указанного года
-    def get_movies_after_year(self, year):
-        return self.session.scalars(select(Movie).where(Movie.year > year)).all()
-
-# Методы обновления
-# Обновляет рейтинг
-    def update_rating(self, movie_id, new_rating):
+    # Меняет жанр фильма
+    def update_genre(self, movie_id, new_genre_id):
         movie = self.get_by_id(movie_id)
         if movie:
-            movie.rating = new_rating
+            movie.genre_id = new_genre_id
             self.session.commit()
 
-# Обновляет жанр
-    def update_genre(self, movie_id, new_genre):
-        movie = self.get_by_id(movie_id)
-        if movie:
-            movie.genre = new_genre
-            self.session.commit()
-
-# Меняет статус
-    def update_availability(self, movie_id, is_available):
-        movie = self.get_by_id(movie_id)
-        if movie:
-            movie.is_available = is_available
-            self.session.commit()
-
-# Полное обновление
-    def update_full(self, movie_id, **kwargs):
-        movie = self.get_by_id(movie_id)
-        if movie:
-            for key, value in kwargs.items():
-                setattr(movie, key, value)
-            self.session.commit()
-
-# Методы удаления
-# Удаляет по ID
+    # Удаляет фильм
     def delete_by_id(self, movie_id):
         movie = self.get_by_id(movie_id)
         if movie:
             self.session.delete(movie)
             self.session.commit()
 
-# Удаляет по названию
-    def delete_by_title(self, title):
-        movie = self.get_movie_by_title(title)
-        if movie:
-            self.session.delete(movie)
-            self.session.commit()
 
-# Меняет is_available на False
-    def soft_delete(self, movie_id):
-        self.update_availability(movie_id, False)
 
-# Логика отображения
-# Выводит заголовок с разделителем
-class MovieViewer:
-    def print_header(self, text):
-        print(f"\n{'='*10} {text.upper()} {'='*10}")
+# --- ВЬЮВЕР для красивого вывода---
+class CinemaViewer:
+    @staticmethod
+    def print_header(text):
+        print(f"\n{'='*15} {text.upper()} {'='*15}")
 
-# Выводит список фильмов
-    def print_all(self, movies):
-        if not movies:
-            print("Список пуст!")
-        for movie in movies:
-            print(movie)
+    @staticmethod
+    def print_movies(movies):
+        for m in movies:
+            print(f"[{m.id}] {m.title} ({m.year}) | Жанр: {m.genre.name} | Рейтинг: {m.rating}")
 
-# Выводит один фильм
-    def print_one(self, movie):
-        if movie:
-            print(movie)
-        else:
-            print("Фильм не найден!")
+    @staticmethod
+    def print_genres(genres):
+        for g in genres:
+            print(f"[{g.id}] {g.name}: {g.description}")
 
-# Выводит статистику по фильмам
-    def print_statistics(self, movies):
-        if not movies: return
-        avg_rating = sum(m.rating for m in movies) / len(movies)
-        print(f"Всего фильмов: {len(movies)} | Средний рейтинг: {avg_rating:.2f}")
+    @staticmethod
+    def print_stats(stats):
+        print("Статистика по жанрам:")
+        for name, count in stats:
+            print(f" - {name}: {count} фильмов")
 
-# ---блок запуска---
-if __name__ == '__main__':
-    engine = create_engine('sqlite:///cinema.db')
-    Base.metadata.drop_all(engine) # чтобы данные не дублировались при перезапуске
+
+
+# --- Запуск ---
+if __name__ == "__main__":
+    engine = create_engine("sqlite:///cinema.db")
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
     Session = sessionmaker(bind=engine)
-    db_session = Session()
+    session = Session()
 
-    manager = MovieManager(db_session)
-    viewer = MovieViewer()
+    g_manager = GenreManager(session)
+    m_manager = MovieManager(session)
+    viewer = CinemaViewer()
 
-# CREATE
+    # Работа с жанрами
+    viewer.print_header("Создание жанров")
+    g_manager.create("Приключения", "Захватывающие фильмы")
+    g_manager.create("Военный", "Серьезное кино")
+    g_manager.create("Фэнтези", "Красивые фильмы")
+    viewer.print_genres(g_manager.get_all())
+
+    # Работа с фильмами (связи)
     viewer.print_header("Добавление фильмов")
-    manager.create_movie("Хищник: планета смерти", "фантастика", 2025, 108, 7.4)
-    manager.create_movie("Домовенок Кузя 2", "семейный", 2026, 92, 5.9)
-    manager.create_movie("Брюс Всемогущий", "комедия", 2003, 97, 7.8)
-    manager.create_movie("Наследник", "триллер", 2026, 105, 6.9)
-    manager.create_movie("Вот это ДРАМА!", "драма", 2026, 107, 7.3)
+    m_manager.create_with_genre_name("Зов предков", 2020, 100, 7.7, "Приключения")
+    m_manager.create_with_genre_name("Малыш", 2026, 114, 7.8, "Военный")
+    m_manager.create_with_genre_name("Буратино", 2026, 102, 7.0, "Фэнтези")
+    viewer.print_movies(m_manager.get_all_movies())
 
-# READ/STATISTICS
-    all_movies = manager.get_all_movies()
-    viewer.print_all(all_movies)
-    viewer.print_statistics(all_movies)
+    # Демонстрация обновления и статистики
+    viewer.print_header("Обновление и статистика")
+    m_manager.update_genre(1,2) # переносим Зов предков из Приключений в Военный
 
-# UPDATE
-    viewer.print_header("Обновление данных")
-    manager.update_rating(1, 9.0) # обновляем рейтинг у ID 1(хищник)
-    try:
-        manager.update_full(5, title="Вот это ДРАМА!", genre="мелодрама", rating=8.0) # полное обновление (Вот это ДРАМА!)
-        print("Успешно обновлено!")
-    except Exception as e:
-        print("Ошибка обновления")
-    viewer.print_one(manager.get_by_id(1))
-    viewer.print_one(manager.get_by_id(5))
+    stats = g_manager.get_genres_with_movies_count()
+    viewer.print_stats(stats)
 
-# DELETE/SOFT DELETE
-    viewer.print_header("Удаление")
-    manager.soft_delete(2) # мягкое удаление(скрываем из проката)
-    manager.delete_by_title("Брюс Всемогущий") # полное удаление по названию
+    # Удаление
+    viewer.print_header("Удаление жанра")
+    print("Удаляем жанр 'Фэнтези' (вместе с ним удалятся и фильмы из-за cascade)...")
+    fantasy = g_manager.get_by_name("Фэнтези")
+    g_manager.delete_by_id(fantasy.id)
 
-    print("Итоговый список:")
-    viewer.print_all(manager.get_all_movies())
+    print("\nОставшиеся фильмы:")
+    viewer.print_movies(m_manager.get_all_movies())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
