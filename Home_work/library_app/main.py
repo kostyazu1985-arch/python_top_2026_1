@@ -1,38 +1,50 @@
-from mypy.server.update import find_unloaded_deps
-
-from models import LibraryManager # импорт менеджера из файла моделей
+from models import LibraryManager  # импорт менеджера из файла моделей
 
 def main():
-  manager = LibraryManager("database.db") # инициализация менеджера
-  manager.create_tables()
+    manager = LibraryManager("database.db")  # инициализация менеджера
 
-  print("ДОБАВЛЕНИЕ АВТОРОВ") # добавление авторов (create)
-  manager.add_author("Федор Достоевский")
-  manager.add_author("Иван Бунин")
-  manager.add_author("Николай Гоголь")
-  manager.add_author("Иван Тургенев")
+    # добавим автора и сохраним его ID
+    manager.add_author("Н.В.Гоголь")
 
-  print("СПИСОК ВСЕХ  АВТОРОВ") # получение всех авторов (read)
-  authors = manager.get_all_authors()
-  for author in authors:
-      print(author)
+    # добавим книги с корректным author_id
+    manager.add_book("Шинель", author_id=5, year=1841, isbn="555-777")
+    manager.add_book("Ревизор", author_id=5, year=1835)
 
-  print("ПОИСК АВТОРА С ID 2") # поиск по id (read)
-  found = manager.find_author_by_id(2)
-  print(f"Найден: {found}")
+    # список всех книг
+    print("=" * 50)
+    books = manager.get_all_books()
+    for b in books:
+        print(f"Книга: {b.title}, Год: {b.year}")
 
-  print("ОБНОВЛЕНИЕ АВТОРА С ID 1") # Обновление имени (update)
-  manager.update_author(1, "Ф.М.Достоевский")
+    # проверяем читателей
+    print("=" * 50)
+    manager.add_reader("Дмитрий", "Долгорукий", "dimon@mail.ru")
+    manager.add_reader("Павлик", "Морозов", "pasha@mail.ru")
 
-  print("ИТОГОВЫЙ СПИСОК ПОСЛЕ ОБНОВЛЕНИЯ") # проверка изменений и удаление (delete)
-  for author in manager.get_all_authors():
-      print(author)
+    # проверка email с обработкой ошибок
+    try:
+        manager.add_reader("Копия", "Морозова", "pasha@mail.ru")
+    except Exception as e:
+        print(f"Не удалось добавить читателя: {e}")
 
-  print("УДАЛЕНИЕ АВТОРА С ID 3") # удаление одного автора
-  manager.delete_author(3)
-  print("АВТОРЫ ПОСЛЕ УДАЛЕНИЯЯ:", manager.get_all_authors())
+    # обновление читателя с проверкой
+    try:
+        manager.update_reader(1, first_name="Димон")
+        print("Читатель успешно обновлён")
+    except Exception as e:
+        print(f"Ошибка при обновлении: {e}")
 
+    # удаление с проверкой
+    try:
+        manager.delete_reader(2)
+        print("Читатель успешно удалён")
+    except Exception as e:
+        print(f"Ошибка при удалении: {e}")
 
+    # итоговый список читателей
+    print("Список читателей:")
+    for r in manager.get_all_readers():
+        print(f"{r.id}: {r.first_name} {r.last_name} ({r.email})")
 
 if __name__ == "__main__":
     main()

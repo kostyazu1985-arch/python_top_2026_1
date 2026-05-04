@@ -121,7 +121,7 @@ class StoreManager:
     def _fetch_one(self, stmt):
         try:
             with self._get_session() as session:
-                result = session.scalars(stmt)
+                result = session.scalar(stmt)
                 return result
         except SQLAlchemyError as e:
             logger.error(f"ERROR request : {e}")
@@ -180,7 +180,9 @@ class StoreManager:
     def find_manufacturer_by_id(self, manufacturer_id: int) -> Optional[Manufacturer]:
         if not isinstance(manufacturer_id, int) or manufacturer_id <= 0:
             raise ValueError("ID должен быть больше нуля")
-        stmt = select(Manufacturer)
+        stmt = select(Manufacturer).where(Manufacturer.id == manufacturer_id)
+        print(stmt)
+        return self._fetch_one(stmt)
 
     def update_manufacturer(self, manufacturer_id: int, new_name: str) -> bool:
         if not isinstance(new_name, str) or not new_name.strip():
@@ -199,13 +201,138 @@ class StoreManager:
         logger.info(f"Производитель {manufacturer_id}, {old_name} обновлен на {new_name}")
         return True
 
-    def _execute_query(self, stmt):
-        with Session(self.engine) as session:
-            result = session.execute(stmt)
-            session.commit()
-            return result.scalars().all() if hasattr(result, "scalars") else result.scalar_one_or_none()
+    def delete_manufacturer(self, manufacturer_id: int) -> bool:
+        manufacturer = self.find_manufacturer_by_id(manufacturer_id)
+        if not manufacturer:
+            logger.warning(f"Производитель с id {manufacturer_id} не найден")
+            return False
+        if manufacturer.products:
+            logger.warning(f"Невозможно удалить производителя {manufacturer.name} с id {manufacturer_id} так как у него есть {len(manufacturer.products)} товары")
+            return False
+        self._delete_object(manufacturer)
+        logger.info(f"Производитель {manufacturer.name} с id {manufacturer_id} удален")
+        return True
 
-    def _execute_mutation(self, obj_to_save):
-        with Session(self.engine) as session:
-            session.add(obj_to_save)
-            session.commit()
+    def add_product(self, name: str, manufacturer_id: int, category: str, price: Decimal | float | int, serial_number: Optional[str] = None) -> Product:
+        if not isinstance(name, str):
+            raise ValueError("Название должно быть строкой")
+        if not isinstance(category, str):
+            raise ValueError("Категория должна быть строкой")
+        if isinstance(price, (float, int)):
+            price = Decimal(str(price))
+        elif not isinstance(price, Decimal):
+            raise ValueError("Цена должна быть числом int float Decimal")
+
+        manufacturer = self.find_manufacturer_by_id(manufacturer_id)
+        if not manufacturer:
+            raise ValueError(f"Производитель с id {manufacturer_id} не найден")
+
+        product = Product(
+            name=name.strip(),
+            manufacturer_id=manufacturer.id,
+            category=category.strip(),
+            price=price,
+            serial_number=serial_number.strip() if serial_number else None
+        )
+
+        try:
+            saved_product = self._save_object(product)
+            logger.info(f"Товар добавлен {saved_product.name}")
+            return saved_product
+        except SQLAlchemyError as e:
+            if "unique constraint failed" in str(e).lower():
+                raise ValueError(f"Товар с таким серийным номером {serial_number} уже существует")
+            raise
+
+    def find_all_product(self) -> List[Product]:
+        stmt = select(Product)
+        return self._fetch_all(stmt)
+
+    def find_product_by_id(self, product_id: int) -> Optional[Product]:
+        if not isinstance(product_id, int) or product_id <= 0:
+            raise ValueError("ID должен быть целым числом")
+
+        stmt = select(Product).where(Product.id == product_id).options(
+            selectinload(Product.manufacturer)
+        )
+        return self._fetch_one(stmt)
+
+    def find_products_by_name_category(self, query: str) -> List[Product]:
+        if not query or not isinstance(query, str):
+            return []
+
+        stmt = select(Product).where(
+            or_(
+                Product.name.ilike(f"%{query}%"),
+                Product.category.ilike(f"%{query}%"),
+            )
+        ).options(
+            selectinload(Product.manufacturer)
+        )
+
+        return self._fetch_all(stmt)
+
+    def update_product(self,
+                        product_id: int,
+                        new_name: Optional[str] = None,
+                        new_category: Optional[str] = None,
+                        new_price: Optional[Decimal] = None,
+                        new_serial_number: Optional[str] = None
+        ) -> bool:
+
+        product = self.find_product_by_id(product_id)
+        if not product:
+            logger.warning(f"Товар ID {product_id} не найден")
+            return False
+
+        if new_name is not None:
+            if not isinstance(new_name, str) or not new_name.strip():
+                raise ValueError("Название не должно быть пустой строкой")
+            product.name = new_name.strip()
+
+        if new_price is not None:
+            if isinstance(new_price, (float, int)):
+                new_price = Decimal(str(new_price))
+            elif not isinstance(new_price, Decimal):
+                raise ValueError("Цена должна быть числом")
+            product.price = new_price
+
+        if new_serial_number is not None:
+            if not isinstance(new_serial_number, str):
+                raise ValueError("Серийный номер должен быть строкой")
+            product.serial_number = new_serial_number.strip() if new_serial_number else None
+
+        try:
+            self._save_object(product)
+            logger.info(f"Товар с id {product.id} обновлен")
+            return True
+        except SQLAlchemyError as e:
+            if "unique constraint failed" in str(e).lower():
+                raise ValueError(f"Товар с таким серийным номером {product.serial_number} уже существует")
+            raise
+
+    def delete_product(self, product_id: int) -> bool:
+        product = self.find_product_by_id(product_id)
+
+        if not product:
+            logger.warning(f"Товар с ID {product_id} не найден")
+            return False
+        #
+        # active_orders = [order for order in product.orders if order.is_active]
+        #
+        # if active_orders:
+        #     logger.warning(
+        #         f"Невозможно удалить товар {product.name} ID {product_id}"
+        #         f"Он содержится в {len(active_orders)} заказах"
+        #     )
+        #     return False
+
+        self._delete_object(product)
+        logger.info(f"Товар {product.name} ID {product_id} успешно удален")
+        return True
+
+
+
+
+
+
