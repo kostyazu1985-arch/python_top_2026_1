@@ -1,50 +1,27 @@
-from models import LibraryManager  # импорт менеджера из файла моделей
+from models import LibraryManager
 
 def main():
-    manager = LibraryManager("database.db")  # инициализация менеджера
+    manager = LibraryManager("database.db")
 
-    # добавим автора и сохраним его ID
-    manager.add_author("Н.В.Гоголь")
+    # Создаем данные
+    manager.add_author("Николай Гоголь")
+    manager.add_book("Шинель", author_id=1, year=1842, isbn="123-456")
+    manager.add_reader("Костя", "Иванов", "kostya@example.com")
 
-    # добавим книги с корректным author_id
-    manager.add_book("Шинель", author_id=5, year=1841, isbn="555-777")
-    manager.add_book("Ревизор", author_id=5, year=1835)
+    # Выдаем книгу
+    print("\n--- Процесс выдачи ---")
+    manager.issue_book_to_reader(book_id=1, reader_id=1)
 
-    # список всех книг
-    print("=" * 50)
-    books = manager.get_all_books()
-    for b in books:
-        print(f"Книга: {b.title}, Год: {b.year}")
+    # Смотрим активные выдачи
+    active = manager.get_active_issues()
+    print("Сейчас на руках:", active)
 
-    # проверяем читателей
-    print("=" * 50)
-    manager.add_reader("Дмитрий", "Долгорукий", "dimon@mail.ru")
-    manager.add_reader("Павлик", "Морозов", "pasha@mail.ru")
+    # Возвращаем книгу
+    if active:
+        # Берем ID первой попавшейся активной выдачи
+        manager.return_book_from_reader(issue_id=active[0].id)
 
-    # проверка email с обработкой ошибок
-    try:
-        manager.add_reader("Копия", "Морозова", "pasha@mail.ru")
-    except Exception as e:
-        print(f"Не удалось добавить читателя: {e}")
-
-    # обновление читателя с проверкой
-    try:
-        manager.update_reader(1, first_name="Димон")
-        print("Читатель успешно обновлён")
-    except Exception as e:
-        print(f"Ошибка при обновлении: {e}")
-
-    # удаление с проверкой
-    try:
-        manager.delete_reader(2)
-        print("Читатель успешно удалён")
-    except Exception as e:
-        print(f"Ошибка при удалении: {e}")
-
-    # итоговый список читателей
-    print("Список читателей:")
-    for r in manager.get_all_readers():
-        print(f"{r.id}: {r.first_name} {r.last_name} ({r.email})")
+    print("Активные после возврата:", manager.get_active_issues())
 
 if __name__ == "__main__":
     main()
