@@ -1,23 +1,31 @@
 from models import LibraryManager
 
+def print_menu():
+    print("\n" + "=" * 30)
+    print("МЕНЮ УПРАВЛЕНИЯ БИБЛИОТЕКОЙ")
+    print("=" * 30)
+    print("1. Добавить автора")
+    print("2. Добавить книгу")
+    print("3. Зарегистрировать читателя")
+    print("-" * 30)
+    print("4. Показать все книги (с авторами)")
+    print("5. Найти книги по имени автора")
+    print("-" * 30)
+    print("6. Выдать книгу читателю")
+    print("7. Вернуть книгу в библиотеку")
+    print("8. Список книг 'на руках'")
+    print("-" * 30)
+    print("9. Удалить автора")
+    print("10. Удалить книгу")
+    print("11. Удалить читателя")
+    print("0. Выйти")
+
 def main():
     manager = LibraryManager("database.db")
 
     while True:
-        print("1. Добавить автора")
-        print("2. Удалить автора")
-        print("3. Добавить книгу")
-        print("4. Удалить книгу")
-        print("5. Показать все книги с авторами")
-        print("6. Найти книги автора по имени")
-        print("7. Добавить читателя")
-        print("8. Удалить читателя")
-        print("9. Выдать книгу")
-        print("10. Вернуть книгу")
-        print("11. Показать активные выдачи")
-        print("12. Выйти")
-
-        choice = input("\nВыберите действие: ")
+        print_menu()
+        choice = input("\nВыберите пункт меню: ")
 
         try:
             if choice == "1":
@@ -25,52 +33,55 @@ def main():
                 manager.add_author(name)
 
             elif choice == "2":
-                id_auth = int(input("Введите ID автора для удаления: "))
-                manager.delete_author(id_auth)
+                title = input("Название книги: ")
+                a_id = int(input("ID автора: "))
+                year = int(input("Год издания: "))
+                isbn = input("ISBN (необязательно): ")
+                manager.add_book(title, a_id, year, isbn)
 
             elif choice == "3":
-                title = input("Название книги: ")
-                auth_id = int(input("ID автора: "))
-                year = int(input("Год издания: "))
-                manager.add_book(title, auth_id, year)
-
-            elif choice == "4":
-                id_bk = int(input("Введите ID книги для удаления: "))
-                manager.delete_book(id_bk)
-
-            elif choice == "5":
-                manager.display_all_books_with_authors()
-
-            elif choice == "6":
-                name = input("Введите имя автора для поиска: ")
-                results = manager.find_books_by_author_name(name)
-                print(f"Книги автора {name}: {results}")
-
-            elif choice == "7":
                 f_name = input("Имя читателя: ")
                 l_name = input("Фамилия читателя: ")
-                mail = input("Email: ")
-                manager.add_reader(f_name, l_name, mail)
+                email = input("Email: ")
+                manager.add_reader(f_name, l_name, email)
+
+            elif choice == "4":
+                manager.display_all_books_with_authors()
+
+            elif choice == "5":
+                name = input("Введите имя автора для поиска: ")
+                books = manager.find_books_by_author_name(name)
+                print(f"Результаты: {books}")
+
+            elif choice == "6":
+                b_id = int(input("ID книги: "))
+                r_id = int(input("ID читателя: "))
+                manager.issue_book(b_id, r_id)
+
+            elif choice == "7":
+                b_id = int(input("ID возвращаемой книги: "))
+                manager.return_book(b_id)
 
             elif choice == "8":
-                id_rd = int(input("ID читателя для удаления: "))
-                manager.delete_reader(id_rd)
+                active = manager.get_active_issues()
+                print("\nСейчас на руках:")
+                for item in active:
+                    print(item)
 
             elif choice == "9":
-                bk_id = int(input("ID книги: "))
-                rd_id = int(input("ID читателя: "))
-                manager.issue_book_to_reader(bk_id, rd_id)
+                a_id = int(input("ID автора для удаления: "))
+                manager.delete_author(a_id)
 
             elif choice == "10":
-                bk_id = int(input("ID книги, которую возвращают: "))
-                manager.return_book_from_reader(bk_id)
+                b_id = int(input("ID книги для удаления: "))
+                manager.delete_book(b_id)
 
             elif choice == "11":
-                active = manager.get_active_issues()
-                print("Активные выдачи:", active)
+                r_id = int(input("ID читателя для удаления: "))
+                manager.delete_reader(r_id)
 
-            elif choice == "12":
-                print("До свидания!")
+            elif choice == "0":
+                print("Программа завершена!")
                 break
             else:
                 print("Неверный выбор, попробуйте снова")
