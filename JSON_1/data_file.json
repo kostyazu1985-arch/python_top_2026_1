@@ -1,0 +1,16 @@
+{
+    "first_name": "Ivan",
+    "last_name": "Smith",
+    "hobbies": [
+        "python",
+        "coding",
+        "programming"
+    ],
+    "ages": 999,
+    "children": [
+        {
+            "name": "Petr",
+            "age": 9
+        }
+    ]
+}
