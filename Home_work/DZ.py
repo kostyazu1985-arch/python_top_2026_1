@@ -79,3 +79,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+#https://github.com/kostyazu1985-arch/python_top_2026_1/blob/main/Home_work/DZ.py
