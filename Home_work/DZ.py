@@ -1,77 +1,81 @@
-import os
-import pickle
-from random import choice
+from datetime import datetime
+import json
+import requests
 
-file_name = "countries.pkl"
-
-def load_data():
-    if os.path.exists(file_name):
-        with open(file_name, "rb") as f:
-            return pickle.load(f)
-    return {}
-
-def save_data(data):
-    with open(file_name, "wb") as f:
-        pickle.dump(data, f)
-    print("Файл сохранен")
+URL = "https://jsonplaceholder.typicode.com/posts"
 
 def main():
-    data = load_data()
+    response = requests.get(URL)
+    posts = response.json()
+    total_posts = len(posts)
 
-    while True:
-        print("\n" + "*" *30)
-        print("Выбор действия:")
-        print("1 - добавление данных")
-        print("2 - удаление данных")
-        print("3 - поиск данных")
-        print("4 - редактирование данных")
-        print("5 - просмотр данных")
-        print("6 - завершение работы")
+    user_counts_dict = {}
+    body_lengths = []
+    title_lengths = []
+    processed_posts = []
 
-        choice = input("Ввод: ")
+    for post in posts:
+        u_id = post["userId"]
+        title_text = post["title"]
+        body_text = post["body"]
 
-        if choice == "1":
-            country = input("Введите название (страны с заглавной буквы): ")
-            capital = input("Введите название (столицы с заглавной буквы): ")
-            data[country] = (capital)
-            save_data(data)
-
-        elif choice == "2":
-            country = input("Введите страну для удаления: ")
-            if (country in data):
-                del data[country]
-                save_data(data)
-                print(f"Данные о стране {country} удалены.")
-            else:
-                print("Такой страны нет в базе данных!")
-
-        elif choice == "3":
-            country = input("Введите название страны для поиска: ")
-            if (country in data):
-                print(f"Столица: {data[country]}")
-            else:
-                print("Страна не найдена!")
-
-        elif choice == "4":
-            country = input("Введите название страны для редактирования: ")
-            if (country in data):
-                new_capital = input("Введите новое название столицы: ")
-                data[country] = (new_capital)
-                save_data(data)
-            else:
-                print("Такой страны нет. Добавьте ее через пункт 1.")
-
-        elif choice == "5":
-            print(data)
-
-        elif choice == "6":
-            print("Работа завершена!")
-            break
-
+        if (u_id in user_counts_dict):
+            user_counts_dict[u_id] += 1
         else:
-            print("Неверный ввод! Выберите число от 1 до 6.")
+            user_counts_dict[u_id] = 1
 
+        body_lengths.append(len(body_text))
+        title_lengths.append(len(title_text))
+        total_len = len(title_text) + len(body_text)
+        processed_posts.append(
+            {
+                "id": post["id"],
+                "userId": u_id,
+                "total_length": total_len,
+            }
+        )
 
-if (__name__ == "__main__"):
+    posts_per_user = []
+    for u_id, count in user_counts_dict.items():
+        posts_per_user.append({"userId": u_id, "posts_count": count})
+
+    top_longest_posts = sorted(processed_posts, key=lambda x: x["total_length"], reverse=True)
+
+    total_body_sum = sum(body_lengths)
+    avg_body_length = (total_body_sum / total_posts)
+
+    most_active_user_id = None
+    max_posts = 0
+    for u_id, count in user_counts_dict.items():
+        if count > max_posts:
+            max_posts = count
+            most_active_user_id = u_id
+
+    title_lengths.sort()
+    mid_index = total_posts // 2
+    if total_posts % 2 == 0:
+        median_title_length = (title_lengths[mid_index - 1] + title_lengths[mid_index]) / 2
+    else:
+        median_title_length = title_lengths[mid_index]
+
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    report = {
+        "generated_at": current_time,
+        "source": URL,
+        "summary": {
+            "total_posts": total_posts,
+            "avg_body_length": round(avg_body_length, 1),
+            "most_active_user_id": most_active_user_id,
+            "median_title_length": median_title_length,
+        },
+        "posts_per_user": posts_per_user,
+        "top_longest_posts": top_longest_posts,
+    }
+
+    with open("report.json", 'w', encoding="utf-8") as f:
+        json.dump(report, f, indent=4, ensure_ascii=False)
+    print("Файл успешно создан!")
+
+if __name__ == "__main__":
     main()
-
