@@ -2,7 +2,6 @@
 #
 # f = open("index.html").read()
 # soup = BeautifulSoup(f, "html.parser")
-from re import search
 
 # row = soup.find("div", class_="name").text
 # row = soup.find_all("div", class_="name")
