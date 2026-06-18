@@ -37,6 +37,24 @@ INSERT INTO ИМЯ_ТАБЛИЦЫ [список_столбцов]
 SELECT СПИСОК_СТОЛБЦОВ
 FROM СПИСОК_ТАБЛИЦ
 WHERE УСЛОВИЕ
+
+UPDATE имя_таблицы
+SET столбец1 = значение
+[WHERE условие]
+
+DELETE FROM имя_таблицы
+WHERE условие
+
+LIMIT количество_строк OFFSET смещение
+LIMIT [смещение,] количество_строк
+Декартово произведение(все возможные комбинации строки одной таблицы с каждой строкой другой таблицы)
+
+функции агрегирования
+SUM
+AVG
+COUNT
+MIN
+MAX
 """
 
 # import sqlite3 as sq
@@ -85,10 +103,10 @@ WHERE УСЛОВИЕ
     # """)
 
 
-import sqlite3 as sq
-
-with sq.connect("profile.db") as con:
-    cur = con.cursor()
+# import sqlite3 as sq
+#
+# with sq.connect("profile.db") as con:
+#     cur = con.cursor()
     # cur.execute("""
     # CREATE TABLE IF NOT EXISTS persons (
     # id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -105,7 +123,48 @@ with sq.connect("profile.db") as con:
 # VALUES (1, "DMITRY", '+79040648571', 29, 'dimitry88@gmail.com')
 # """)
 
+#     cur.execute("""
+# INSERT INTO persons (email, name, age)
+# VALUES ('anton@gmail.com', 'Антон', 44)
+# """)
+
+
+import sqlite3 as sq
+
+with sq.connect("db_4.db") as con:
+    cur = con.cursor()
     cur.execute("""
-INSERT INTO persons (email, name, age)
-VALUES ('anton@gmail.com', 'Антон', 44)
-""")
+    SELECT *
+    FROM Ware 
+    ORDER BY Price DESC
+    LIMIT 2, 5
+    """)
+
+    # res = cur.fetchall()
+    # print(res)
+
+    # res1 = cur.fetchone()
+    # print(res1)
+
+    # res2 = cur.fetchmany(2)
+    # print(res2)
+
+    # res3 = cur.fetchmany(10)
+    # print(res3)
+
+    # res4 = cur.fetchall()
+    # print(res4)
+    #
+    # for res in res4:
+    #     print(res)
+
+    for res in cur:
+          print(res)
+
+
+
+
+
+
+
+
