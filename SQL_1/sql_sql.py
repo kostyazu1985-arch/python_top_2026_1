@@ -29,6 +29,7 @@ WHERE условие
 				^ - этот символ используется в начале списка и соответствует любому символу, который НЕ входит в список [^0-9]
 			IS [NOT] NULL - позволяет выбирать все строки, столбцы которых имеют значение NULL
 			выражение [NOT] IN (набор значений | выражение)
+			EXISTS (существует)
 GROUP BY (группировать по)
 HAVING условие - нужен для использования условий агрегирования
 ORDER BY col_name | col_number [ASC | DESC]
@@ -62,6 +63,25 @@ MAX
 Многострочные подзапросы: IN (NOT IN) (возвращает более одной строки, список значений)
 Операторы BETWEEN, LIKE, IS NULL - нельзя применять к подзапросам
 В подзапросах нельзя использовать ORDER BY, GROUP BY
+
+FROM table_name_1 INNER JOIN table_name_2
+ON связь_между_таблицами(первичным_и_внешним_ключами)
+
+UNION - используется для объединения двух и более SELECT с исключением повторяющихся строк
+
+INNER JOIN (внутреннее соединение). Возвращает только те строки, для которых есть совпадение по заданному
+условию в обеих таблицах. Например, если есть две таблицы с данными о клиентах и заказах, INNER JOIN вернёт только тех
+клиентов, у которых есть хотя бы один заказ. 1. INNER JOIN (внутреннее соединение). Возвращает только те строки,
+для которых есть совпадение по заданному условию в обеих таблицах. Например, если есть две таблицы с данными о
+клиентах и заказах, INNER JOIN вернёт только тех клиентов, у которых есть хотя бы один заказ.
+
+LEFT JOIN (левое внешнее соединение). Возвращает все строки из левой таблицы и соответствующие строки из правой таблицы.
+Если совпадений нет, для столбцов правой таблицы используются значения NULL.
+
+RIGHT JOIN (правое внешнее соединение). Работает аналогично LEFT JOIN, но в приоритете — правая таблица.
+
+FULL JOIN (полное внешнее соединение). Возвращает строки, когда есть совпадение в одной из таблиц. Если совпадения нет,
+в столбцах таблицы, в которой нет совпадения, используются значения NULL.
 """
 
 # import sqlite3 as sq
@@ -136,16 +156,16 @@ MAX
 # """)
 
 
-import sqlite3 as sq
-
-with sq.connect("db_4.db") as con:
-    cur = con.cursor()
-    cur.execute("""
-    SELECT *
-    FROM Ware 
-    ORDER BY Price DESC
-    LIMIT 2, 5
-    """)
+# import sqlite3 as sq
+#
+# with sq.connect("db_4.db") as con:
+#     cur = con.cursor()
+#     cur.execute("""
+#     SELECT *
+#     FROM Ware
+#     ORDER BY Price DESC
+#     LIMIT 2, 5
+#     """)
 
     # res = cur.fetchall()
     # print(res)
@@ -165,13 +185,67 @@ with sq.connect("db_4.db") as con:
     # for res in res4:
     #     print(res)
 
-    for res in cur:
-          print(res)
+    # for res in cur:
+    #       print(res)
 
+import sqlite3 as sq
 
+cars = [
+    ('BMW', 500000000),
+    ('Honda', 8800000000),
+    ('Citroen', 4500000000),
+    ('Tank', 2800000000),
+    ('Haval', 5600000000)
+]
 
+# with sq.connect("cars.db") as con:
+#     cur = con.cursor()
+#     cur.execute("""
+#     CREATE TABLE IF NOT EXISTS car (
+#         cars_id INTEGER PRIMARY KEY AUTOINCREMENT,
+#         model TEXT,
+#         price INTEGER
+#     )
+#     """)
 
+    # cur.execute("INSERT INTO car VALUES(1, 'Reno', 15000000)")
+    # cur.execute("INSERT INTO car VALUES(2, 'Volvo', 18000000)")
+    # cur.execute("INSERT INTO car VALUES(3, 'BMW', 16000000)")
+    # cur.execute("INSERT INTO car VALUES(4, 'Lada', 25000000)")
+    # cur.execute("INSERT INTO car VALUES(5, 'KIA', 39000000)")
 
+    # for car in cars:
+    #     cur.execute("INSERT INTO car VALUES (NULL, ?, ?)", car)
 
+    # cur.executemany("INSERT INTO car VALUES(NULL, ?, ?)", cars)
 
+    # cur.execute("UPDATE car SET price = :Price WHERE model LIKE 'B%'", {'Price': 0})
 
+    # cur.executescript("""
+    # DELETE FROM car WHERE model LIKE 'B%';
+    # UPDATE car SET price = price + 55555
+    # """)
+
+# con = None
+# try:
+#     con = sq.connect("cars.db")
+#     cur = con.cursor()
+#     cur.executescript("""
+#     CREATE TABLE IF NOT EXISTS car (
+#         cars_id INTEGER PRIMARY KEY AUTOINCREMENT,
+#         model TEXT,
+#         price INTEGER
+#     );
+#     BEGIN;
+#     INSERT INTO car VALUES (NULL, 'Nissan', 3333333);
+#     UPDATE car SET price = price + 111;
+#     """)
+#     con.commit()
+# except sq.Error() as e:
+#     if con :
+#         con.rollback()
+#     print("Ошибка выполнения запроса")
+#
+# finally:
+#     if con:
+#         con.close()
