@@ -83,68 +83,69 @@ RIGHT JOIN (правое внешнее соединение). Работает 
 FULL JOIN (полное внешнее соединение). Возвращает строки, когда есть совпадение в одной из таблиц. Если совпадения нет,
 в столбцах таблицы, в которой нет совпадения, используются значения NULL.
 """
+import sqlalchemy
 
 # import sqlite3 as sq
 #
 # with sq.connect("profile.db") as con:
 #     cur = con.cursor()
 
-    # СОЗДАНИЕ ТАБЛИЦЫ
-    # cur.execute("""
-    # CREATE TABLE IF NOT EXISTS persons (
-    # id INTEGER PRIMARY KEY AUTOINCREMENT,
-    # name TEXT NOT NULL,
-    # phone BLOB NOT NULL DEFAULT '+79000000000',
-    # age INTEGER NOT NULL CHECK (age > 0 AND age < 120),
-    # email TEXT UNIQUE
-    # )
-    # """)
+# СОЗДАНИЕ ТАБЛИЦЫ
+# cur.execute("""
+# CREATE TABLE IF NOT EXISTS persons (
+# id INTEGER PRIMARY KEY AUTOINCREMENT,
+# name TEXT NOT NULL,
+# phone BLOB NOT NULL DEFAULT '+79000000000',
+# age INTEGER NOT NULL CHECK (age > 0 AND age < 120),
+# email TEXT UNIQUE
+# )
+# """)
 
-    # ПЕРЕИМЕНОВАНИЕ ТАБЛИЦЫ
-    # cur.execute("""
-    # ALTER TABLE persons
-    # RENAME TO person_table
-    # """)
+# ПЕРЕИМЕНОВАНИЕ ТАБЛИЦЫ
+# cur.execute("""
+# ALTER TABLE persons
+# RENAME TO person_table
+# """)
 
-    # ДОБАВЛЕНИЕ СТОЛБЦА В ТАБЛИЦУ
-    # cur.execute("""
-    #     ALTER TABLE person_table
-    #     ADD COLUMN address TEXT
-    #     """)
+# ДОБАВЛЕНИЕ СТОЛБЦА В ТАБЛИЦУ
+# cur.execute("""
+#     ALTER TABLE person_table
+#     ADD COLUMN address TEXT
+#     """)
 
-    # УДАЛЕНИЕ СТОЛБЦА ИЗ ТАБЛИЦЫ
-    # cur.execute("""
-    #        ALTER TABLE person_table
-    #        DROP COLUMN address
-    #        """)
+# УДАЛЕНИЕ СТОЛБЦА ИЗ ТАБЛИЦЫ
+# cur.execute("""
+#        ALTER TABLE person_table
+#        DROP COLUMN address
+#        """)
 
-    # ПЕРЕИМЕНОВАНИЕ СТОЛБЦА В ТАБЛИЦЕ
-    # cur.execute("""
-    #     ALTER TABLE person_table
-    #     RENAME COLUMN address TO home_address
-    #     """)
+# ПЕРЕИМЕНОВАНИЕ СТОЛБЦА В ТАБЛИЦЕ
+# cur.execute("""
+#     ALTER TABLE person_table
+#     RENAME COLUMN address TO home_address
+#     """)
 
-    # УДАЛЕНИЕ ТАБЛИЦЫ
-    # cur.execute ("""
-    # DROP TABLE person_table
-    # """)
+# УДАЛЕНИЕ ТАБЛИЦЫ
+# cur.execute ("""
+# DROP TABLE person_table
+# """)
 
 
 # import sqlite3 as sq
 #
 # with sq.connect("profile.db") as con:
 #     cur = con.cursor()
-    # cur.execute("""
-    # CREATE TABLE IF NOT EXISTS persons (
-    # id INTEGER PRIMARY KEY AUTOINCREMENT,
-    # name TEXT NOT NULL,
-    # phone BLOB NOT NULL DEFAULT '+79000000000',
-    # age INTEGER NOT NULL CHECK (age > 0 AND age < 120),
-    # email TEXT UNIQUE
-    # )
-    # """)
+# cur.execute("""
+# CREATE TABLE IF NOT EXISTS persons (
+# id INTEGER PRIMARY KEY AUTOINCREMENT,
+# name TEXT NOT NULL,
+# phone BLOB NOT NULL DEFAULT '+79000000000',
+# age INTEGER NOT NULL CHECK (age > 0 AND age < 120),
+# email TEXT UNIQUE
+# )
+# """)
 
-    # заполнение таблицы
+# заполнение таблицы
 #     cur.execute("""
 # INSERT INTO persons
 # VALUES (1, "DMITRY", '+79040648571', 29, 'dimitry88@gmail.com')
@@ -167,36 +168,37 @@ FULL JOIN (полное внешнее соединение). Возвращае
 #     LIMIT 2, 5
 #     """)
 
-    # res = cur.fetchall()
-    # print(res)
+# res = cur.fetchall()
+# print(res)
 
-    # res1 = cur.fetchone()
-    # print(res1)
+# res1 = cur.fetchone()
+# print(res1)
 
-    # res2 = cur.fetchmany(2)
-    # print(res2)
+# res2 = cur.fetchmany(2)
+# print(res2)
 
-    # res3 = cur.fetchmany(10)
-    # print(res3)
+# res3 = cur.fetchmany(10)
+# print(res3)
 
-    # res4 = cur.fetchall()
-    # print(res4)
-    #
-    # for res in res4:
-    #     print(res)
+# res4 = cur.fetchall()
+# print(res4)
+#
+# for res in res4:
+#     print(res)
 
-    # for res in cur:
-    #       print(res)
+# for res in cur:
+#       print(res)
 
-import sqlite3 as sq
 
-cars = [
-    ('BMW', 500000000),
-    ('Honda', 8800000000),
-    ('Citroen', 4500000000),
-    ('Tank', 2800000000),
-    ('Haval', 5600000000)
-]
+# import sqlite3 as sq
+#
+# cars = [
+#     ('BMW', 500000000),
+#     ('Honda', 8800000000),
+#     ('Citroen', 4500000000),
+#     ('Tank', 2800000000),
+#     ('Haval', 5600000000)
+# ]
 
 # with sq.connect("cars.db") as con:
 #     cur = con.cursor()
@@ -208,23 +210,23 @@ cars = [
 #     )
 #     """)
 
-    # cur.execute("INSERT INTO car VALUES(1, 'Reno', 15000000)")
-    # cur.execute("INSERT INTO car VALUES(2, 'Volvo', 18000000)")
-    # cur.execute("INSERT INTO car VALUES(3, 'BMW', 16000000)")
-    # cur.execute("INSERT INTO car VALUES(4, 'Lada', 25000000)")
-    # cur.execute("INSERT INTO car VALUES(5, 'KIA', 39000000)")
+# cur.execute("INSERT INTO car VALUES(1, 'Reno', 15000000)")
+# cur.execute("INSERT INTO car VALUES(2, 'Volvo', 18000000)")
+# cur.execute("INSERT INTO car VALUES(3, 'BMW', 16000000)")
+# cur.execute("INSERT INTO car VALUES(4, 'Lada', 25000000)")
+# cur.execute("INSERT INTO car VALUES(5, 'KIA', 39000000)")
 
-    # for car in cars:
-    #     cur.execute("INSERT INTO car VALUES (NULL, ?, ?)", car)
+# for car in cars:
+#     cur.execute("INSERT INTO car VALUES (NULL, ?, ?)", car)
 
-    # cur.executemany("INSERT INTO car VALUES(NULL, ?, ?)", cars)
+# cur.executemany("INSERT INTO car VALUES(NULL, ?, ?)", cars)
 
-    # cur.execute("UPDATE car SET price = :Price WHERE model LIKE 'B%'", {'Price': 0})
+# cur.execute("UPDATE car SET price = :Price WHERE model LIKE 'B%'", {'Price': 0})
 
-    # cur.executescript("""
-    # DELETE FROM car WHERE model LIKE 'B%';
-    # UPDATE car SET price = price + 55555
-    # """)
+# cur.executescript("""
+# DELETE FROM car WHERE model LIKE 'B%';
+# UPDATE car SET price = price + 55555
+# """)
 
 # con = None
 # try:
@@ -249,3 +251,137 @@ cars = [
 # finally:
 #     if con:
 #         con.close()
+
+
+# import sqlite3 as sq
+#
+# with sq.connect("cars.db") as con:
+#     cur = con.cursor()
+#     cur.executescript("""
+#         CREATE TABLE IF NOT EXISTS car(
+#         cars_id INTEGER PRIMARY KEY AUTOINCREMENT,
+#         model TEXT,
+#         price INTEGER
+#     );
+#     CREATE TABLE IF NOT EXISTS cost(
+#         name TEXT, tr_in INTEGER, buy INTEGER
+#     )
+#     """)
+
+# cur.execute("INSERT INTO car VALUES(NULL, 'Запорожец', 1000)")
+# last_row_id = cur.lastrowid
+# print(last_row_id)
+# buy_car_id = 2
+# cur.execute("INSERT INTO cost VALUES('Илья', ?, ?)", (last_row_id, buy_car_id))
+
+# cur.execute("SELECT model, price FROM car")
+# rows = cur.fetchall()
+# rows = cur.fetchone()
+# rows = cur.fetchmany(5)
+# print(rows)
+
+# for res in cur:
+#     print(res[0])
+
+
+# import sqlite3 as sq
+#
+# with sq.connect("cars.db") as con:
+#     con.row_factory = sq.Row
+#     # print(con.row_factory)
+#     cur = con.cursor()
+#     cur.executescript("""
+#         CREATE TABLE IF NOT EXISTS car(
+#         cars_id INTEGER PRIMARY KEY AUTOINCREMENT,
+#         model TEXT,
+#         price INTEGER
+#     );
+#     CREATE TABLE IF NOT EXISTS cost(
+#         name TEXT, tr_in INTEGER, buy INTEGER
+#     )
+#     """)
+#
+#     cur.execute("SELECT model, price FROM car")
+#
+#     for res in cur:
+#         print(res['model'], "-", res['price'])
+
+
+# import sqlite3 as sq
+
+# def read_ava(n):
+#     try:
+#         with open(f"avatars/{n}.png", "rb") as f:
+#             return f.read()
+#     except IOError as e:
+#         print(e)
+#         return False
+
+# def write_ava(name, data):
+#     try:
+#         with open(name, "wb") as f:
+#             f.write(data)
+#     except IOError as e:
+#         print(e)
+#         return False
+#     return True
+#
+# with sq.connect("cars.db") as con:
+#     con.row_factory = sq.Row
+#     # print(con.row_factory)
+#     cur = con.cursor()
+#     cur.executescript("""
+#     CREATE TABLE IF NOT EXISTS users(
+#         name TEXT,
+#         ava BLOB,
+#         score INTEGER
+#     );
+#     """)
+
+
+# img = read_ava(1)
+# if img:
+#     binary = sq.Binary(img)
+#     cur.execute("INSERT INTO users VALUES ('Илья', ?, 1000)", (binary,) )
+
+# cur.execute("SELECT ava FROM users LIMIT 1")
+# img = cur.fetchone()['ava']
+#
+# write_ava("out.png", img)
+
+
+# import sqlite3 as sq
+#
+# with sq.connect("cars.db") as con:
+#     cur = con.cursor()
+
+# with open("sql_dump.sql", "w") as f:
+#     for sql in con.iterdump():
+#         # print(sql)
+#         f.write(sql)
+
+# with open("sql_dump.sql", "r") as f:
+#     sql = f.read()
+#     cur.executescript(sql)
+
+
+# import sqlite3 as sq
+#
+# data = [('car', 'машина'), ('house', 'дом'), ('tree', 'дерево'), ('color', 'цвет')]
+#
+# con = sq.connect(':memory:')
+# with con:
+#     cur = con.cursor()
+#     cur.execute("""
+#     CREATE TABLE IF NOT EXISTS dict(
+#     eng TEXT,
+#     rus TEXT
+#     )
+#     """)
+#
+#     cur.executemany("INSERT INTO dict VALUES(?, ?)", data)
+#
+#     cur.execute("SELECT rus FROM dict WHERE eng LIKE 'c%'")
+#     print(cur.fetchall())
+
+
