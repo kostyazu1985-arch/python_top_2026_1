@@ -1,101 +1,40 @@
-import csv # для записи данных в csv
-import time # пауза от бана
-from bs4 import BeautifulSoup # для поиска по тегам
-import requests # для скачивания веб страниц
+import sqlite3 as sq
 
-
-class RecipeParser:
-
-    def __init__(self):
-        self.base_url = "https://www.russianfood.com/recipes/bytype/?fid=926&page="
-        self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
-
-        self.all_recipes = [] # для хранения всех рецептов
-
-    # метод для скачивания страницы по ее номеру
-    def fetch_page(self, page_number):
-        url = f"{self.base_url}{page_number}"
-        try:
-            response = requests.get(url, headers=self.headers)
-            response.raise_for_status()
-            return response.text
-        except Exception as e:
-            print(f"Ошибка при загрузке страницы {page_number}: {e}")
-            return None
-
-    # метод для извлечения рецептов из html
-    def parse_page(self, html_text):
-        if not html_text:
-            return
-
-        soup = BeautifulSoup(html_text, "html.parser")
-
-        recipe_cards = soup.find_all("div", class_="recipe_l")
-
-        for card in recipe_cards:
-            # ищем название
-            title_tag = card.find("div", class_="title")
-            title = title_tag.text.strip() if title_tag else "Название не указано"
-
-            # ищем описание
-            description_tag = card.find("div", class_="announce")
-            if description_tag:
-                description = description_tag.text.replace("Далее...", "").replace("\n", " ").strip()
-            else:
-                description = "Описание отсутствует"
-
-            # ищем время приготовления
-            time_tag = card.find("span", class_="prep_time")
-            if not time_tag:
-                time_tag = card.find("div", class_="info")
-
-            if time_tag and "мин" in time_tag.text:
-                cooking_time = time_tag.text.strip()
-            else:
-                cooking_time = "Не указано"
-
-            self.all_recipes.append(
-                {
-                    "Название": title,
-                    "Описание": description,
-                    "Время приготовления": cooking_time,
-                }
-            )
-
-    # метод для сохранения данных в csv
-    def save_to_csv(self, filename):
-        if not self.all_recipes:
-            print("Нет данных для сохранения")
-            return
-
-        with open(filename, "w", encoding="utf-8", newline="") as f:
-            fieldnames = [
-                "Название",
-                "Описание",
-                "Время приготовления",
-            ]
-            writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=";")
-            writer.writeheader()
-            writer.writerows(self.all_recipes)
-        print(f"Данные ({len(self.all_recipes)} шт.) сохранены в файл '{filename}'")
-
-    # главный метод для запуска процесса
-    def run(self, start_page=1, end_page=10):
-        print("Запуск ООП-парсера...")
-
-        for page in range(start_page, end_page + 1):
-            print(f"Обработка страницы {page} из {end_page}...")
-
-            page_html = self.fetch_page(page)
-            self.parse_page(page_html)
-            time.sleep(1)
-
-if __name__ == "__main__":
-    parser = RecipeParser()
-    parser.run(start_page=1, end_page=10)
-    parser.save_to_csv("oop_recipes.csv")
+with sq.connect("cars_library.db") as con:
+    con.row_factory = sq.Row
+    cur = con.cursor()
+    cur.executescript("""
+        CREATE TABLE IF NOT EXISTS car(
+            cars_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            model TEXT,
+            color TEXT,
+            price INTEGER
+        );
+    """)
+    cur.execute("SELECT COUNT(*) as cnt FROM car")
+    if cur.fetchone()["cnt"] == 0:
+        cars_data = [
+            ("Lada Granta", "Белый", 950000),
+            ("Lada Vesta", "Серый", 1450000),
+            ("Haval Jolion", "Красный", 2300000),
+            ("Geely Coolray", "Синий", 2500000),
+            ("Chery Tiggo 7", "Черный", 3500000),
+            ("Toyota Camry", "Серебристый", 2600000),
+            ("Hyundai Santa Fe", "Белый", 4200000),
+            ("Kia Sportage", "Коричневый", 3700000),
+            ("VW Tiguan", "Зеленый", 4300000),
+            ("Skoda Yeti", "Пурпурный", 2800000),
+            ("BMW X5", "Черный", 9500000),
+            ("Audi A8", "Красный", 4800000),
+            ("Mercedes S-Class", "Голубой", 5600000),
+            ("Subaru Impreza", "Оранжевый", 3900000),
+            ("Mazda CX-5", "Бордовый", 3400000),
+        ]
+        cur.executemany("INSERT INTO car (model, color, price) VALUES (?, ?, ?)", cars_data)
+        cur.execute("SELECT model, color, price FROM car")
+        print("Список автомобилей в БД:")
+        for res in cur:
+            print(f"Модель: {res['model']} | Цвет: {res['color']} | Цена: {res['price']} руб.")
 
 
 
