@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from models.database import Base
 
 association_table = Table('association', Base.metadata, Column('lesson_id', Integer, ForeignKey('lessons.id')),
-                          Column('group_id', Integer, ForeignKey('groups.id'))
+                          Column('group_id', Integer, ForeignKey('groups.id')))
 
 class Lesson(Base):
     __tablename__ = 'lessons'

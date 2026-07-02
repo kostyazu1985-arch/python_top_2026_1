@@ -10,5 +10,12 @@ class Student(Base):
     age = Column(Integer)
     group = Column(Integer, ForeignKey('groups.id'))
 
+    def __init__(self, full_name, age, id_group):
+        self.surname = full_name[0]
+        self.name = full_name[1]
+        self.patronymic = full_name[2]
+        self.age = age
+        self.group = id_group
+
     def __repr__(self):
         return f"Студент(ФИО:{self.surname} {self.name} {self.patronymic}, Возраст {self.age}, ID_Группы: {self.group})"
