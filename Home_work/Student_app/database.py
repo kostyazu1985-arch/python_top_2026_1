@@ -1,8 +1,5 @@
-# Импортируем стандартные колонки и типы данных из SQLAlchemy
 from sqlalchemy import Column, Integer, String, ForeignKey
-# Импортируем инструмент для создания базового класса моделей и виртуальных связей
 from sqlalchemy.orm import DeclarativeBase, relationship
-
 
 
 class Base(DeclarativeBase):
