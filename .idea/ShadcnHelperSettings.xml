@@ -2946,6 +2946,42 @@
         <option name="homepage" value="https://shadcn-loaders.vercel.app" />
         <option name="urlTemplate" value="https://shadcn-loaders.vercel.app/r/{name}.json" />
       </RegistryConfigState>
+      <RegistryConfigState>
+        <option name="id" value="central-brainless" />
+        <option name="name" value="Brainless" />
+        <option name="namespace" value="@brainless" />
+        <option name="baseUrl" value="https://brainless.swerdlow.dev/r" />
+        <option name="stylePath" value="/{name}.json" />
+        <option name="type" value="community" />
+        <option name="enabled" value="false" />
+        <option name="description" value="Claude Code, Codex, and Grok interfaces as shadcn components — accessible React terminal-agent UI for docs, demos, and product surfaces." />
+        <option name="homepage" value="https://brainless.swerdlow.dev" />
+        <option name="urlTemplate" value="https://brainless.swerdlow.dev/r/{name}.json" />
+      </RegistryConfigState>
+      <RegistryConfigState>
+        <option name="id" value="central-moduix-react" />
+        <option name="name" value="Moduix-react" />
+        <option name="namespace" value="@moduix-react" />
+        <option name="baseUrl" value="https://moduix.dev/r/react" />
+        <option name="stylePath" value="/{name}.json" />
+        <option name="type" value="community" />
+        <option name="enabled" value="false" />
+        <option name="description" value="Ark-first React components, blocks, and themes with native CSS, available as a package or a shadcn-compatible copy-owned registry." />
+        <option name="homepage" value="https://moduix.dev" />
+        <option name="urlTemplate" value="https://moduix.dev/r/react/{name}.json" />
+      </RegistryConfigState>
+      <RegistryConfigState>
+        <option name="id" value="central-seamui" />
+        <option name="name" value="Seamui" />
+        <option name="namespace" value="@seamui" />
+        <option name="baseUrl" value="https://seamui.dev/r" />
+        <option name="stylePath" value="/{name}.json" />
+        <option name="type" value="community" />
+        <option name="enabled" value="false" />
+        <option name="description" value="Own-your-code components rebuilt on Base UI with a motion.dev feel layer — springs, touch feedback, and depth — plus an agent-workbench tier (composer, voice, status, connectors) for AI-era interfaces." />
+        <option name="homepage" value="https://seamui.dev" />
+        <option name="urlTemplate" value="https://seamui.dev/r/{name}.json" />
+      </RegistryConfigState>
     </registryConfigs>
   </component>
 </project>
